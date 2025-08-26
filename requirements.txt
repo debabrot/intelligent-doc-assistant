@@ -1,7 +1,17 @@
+# LangChain ecosystem
 langchain
 langchain-community
 langchain-chroma
+
+# Vector DB
 chromadb
-unstructured
+
+# Document loading and preprocessing
 PyPDF2
-sentence-transformers
+pypdf
+
+# Endpoint
+fastapi
+pydantic
+python-multipart
+uvicorn
