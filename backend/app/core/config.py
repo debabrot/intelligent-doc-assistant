@@ -2,27 +2,37 @@
 Contains configurations
 """
 
-# settings.py
 import os
 from functools import lru_cache
 from pydantic_settings import BaseSettings
+from pydantic import computed_field
 
 
 class Settings(BaseSettings):
     """Application settings for the backend service."""
     # ------------------------------------------------------------------
-    # Chroma
+    # Database
     # ------------------------------------------------------------------
     CHROMA_HOST: str
-    CHROMA_PORT: int
+    CHROMA_PORT: str
 
     # ------------------------------------------------------------------
     # Embedding
     # ------------------------------------------------------------------
-    COLLECTION_NAME: str = "pdf_embeddings"
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
-    UPLOAD_DIR: str = "uploads"
-    EMBEDDING_API_URL: str
+    COLLECTION_NAME: str
+    EMBEDDING_MODEL: str
+    UPLOAD_DIR: str
+    EMBEDDING_BASE_URL: str
+
+    @computed_field
+    @property
+    def EMBEDDING_API_URL(self) -> str:
+        return f"{self.EMBEDDING_BASE_URL}/embed"
+
+    @computed_field
+    @property
+    def EMBEDDING_TOKENIZE_URL(self) -> str:
+        return f"{self.EMBEDDING_BASE_URL}/tokenize"
 
     class Config:
         env_file = ".env"

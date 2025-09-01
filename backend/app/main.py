@@ -2,7 +2,11 @@
 from fastapi import FastAPI
 from backend.app.routers.upload import router as upload_router
 from backend.app.routers.embed import router as embed_router
+from backend.app.utils.logger import setup_logging
 
+
+# Set up logging
+setup_logging()
 
 app = FastAPI(title="RAG Ingestion Microservice")
 

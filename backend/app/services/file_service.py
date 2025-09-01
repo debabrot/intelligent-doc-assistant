@@ -1,4 +1,3 @@
-# backend/app/services/file_service.py
 import os
 from fastapi import UploadFile
 
