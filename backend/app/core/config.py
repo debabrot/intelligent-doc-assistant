@@ -3,7 +3,9 @@ Contains configurations
 """
 
 import os
+import re
 from functools import lru_cache
+
 from pydantic_settings import BaseSettings
 from pydantic import computed_field
 
@@ -27,7 +29,7 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     # Embedding
     # ------------------------------------------------------------------
-    COLLECTION_NAME: str
+    BASE_COLLECTION_NAME: str
     EMBEDDING_MODEL: str
     UPLOAD_DIR: str
     EMBEDDING_BASE_URL: str
@@ -41,6 +43,12 @@ class Settings(BaseSettings):
     @property
     def EMBEDDING_TOKENIZE_URL(self) -> str:
         return f"{self.EMBEDDING_BASE_URL}/tokenize"
+
+    @computed_field
+    @property
+    def COLLECTION_NAME(self) -> str:
+        safe_model_name = re.sub(r'[^a-zA-Z0-9_-]', '_', self.EMBEDDING_MODEL)
+        return f"{self.BASE_COLLECTION_NAME}_{safe_model_name}"
 
     class Config:
         env_file = ".env"

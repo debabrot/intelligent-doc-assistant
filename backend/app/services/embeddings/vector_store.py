@@ -33,16 +33,34 @@ class ChromaVectorStore(VectorStoreProtocol):
             self._collection = self.client.get_or_create_collection(name=self.collection_name)
         return self._collection
 
-    def add_documents(self, chunks: List[DocumentChunk], embeddings: List[List[float]]) -> None:
+    def add_documents(
+            self,
+            chunks: List[DocumentChunk],
+            embeddings: List[List[float]],
+            batch_size: int=1000
+        ) -> None:
         if len(chunks) != len(embeddings):
             raise ValueError(f"Mismatch between chunks ({len(chunks)}) and embeddings ({len(embeddings)})")
 
-        self.collection.upsert(
-            embeddings=embeddings,
-            documents=[chunk.content for chunk in chunks],
-            metadatas=[chunk.metadata for chunk in chunks],
-            ids=[chunk.id for chunk in chunks]
-        )
+        total = len(chunks)
+        for i in range(0, total, batch_size):
+            batch_chunks = chunks[i:i + batch_size]
+            batch_embeddings = embeddings[i:i + batch_size]
+
+            self.collection.upsert(
+                embeddings=batch_embeddings,
+                documents=[chunk.content for chunk in batch_chunks],
+                metadatas=[chunk.metadata for chunk in batch_chunks],
+                ids=[chunk.id for chunk in batch_chunks]
+            )
+
+            logger.info(
+                "Inserted batch %d-%d of %d documents into Chroma collection '%s'",
+                i + 1,
+                min(i + batch_size, total),
+                total,
+                self.collection_name
+            )
 
         logger.info(
             "Successfully added %d documents to Chroma collection '%s'", 
