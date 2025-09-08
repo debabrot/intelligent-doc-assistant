@@ -17,6 +17,14 @@ class Settings(BaseSettings):
     CHROMA_PORT: str
 
     # ------------------------------------------------------------------
+    # File Storage
+    # ------------------------------------------------------------------
+    MINIO_ENDPOINT: str
+    MINIO_ACCESS_KEY: str
+    MINIO_SECRET_KEY: str
+    MINIO_BUCKET: str
+
+    # ------------------------------------------------------------------
     # Embedding
     # ------------------------------------------------------------------
     COLLECTION_NAME: str
