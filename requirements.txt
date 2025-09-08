@@ -15,3 +15,7 @@ fastapi
 pydantic
 python-multipart
 uvicorn
+
+# File storage
+minio
+boto3
