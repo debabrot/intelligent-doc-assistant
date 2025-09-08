@@ -37,7 +37,7 @@ class ChromaVectorStore(VectorStoreProtocol):
         if len(chunks) != len(embeddings):
             raise ValueError(f"Mismatch between chunks ({len(chunks)}) and embeddings ({len(embeddings)})")
 
-        self.collection.add(
+        self.collection.upsert(
             embeddings=embeddings,
             documents=[chunk.content for chunk in chunks],
             metadatas=[chunk.metadata for chunk in chunks],

@@ -2,9 +2,16 @@
 
 import uuid
 from typing import List
+
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from backend.app.domain.protocols import DocumentChunk, DocumentLoaderProtocol, TokenizerProtocol
+
+from backend.app.utils.identifiers import generate_deterministic_id
+from backend.app.domain.protocols import (
+    DocumentChunk,
+    DocumentLoaderProtocol,
+    TokenizerProtocol
+)
 
 
 class PDFDocumentLoader(DocumentLoaderProtocol):
@@ -24,9 +31,9 @@ class PDFDocumentLoader(DocumentLoaderProtocol):
             length_function=self.tokenizer.count_tokens,
             separators=["\n\n", "\n", " ", ""]
         )
-        
+
         split_docs = text_splitter.split_documents(documents)
-        
+
         return [
             DocumentChunk(
                 content=doc.page_content,
@@ -35,7 +42,14 @@ class PDFDocumentLoader(DocumentLoaderProtocol):
                     "page": doc.metadata.get("page", -1),
                     "chunk_index": i
                 },
-                id=str(uuid.uuid4())
+                id=generate_deterministic_id(
+                    doc.page_content,
+                    {
+                        "source": doc.metadata.get("source", "unknown"),
+                        "page": doc.metadata.get("page", -1),
+                        "chunk_index": i
+                    }
+                )
             )
             for i, doc in enumerate(split_docs)
         ]
