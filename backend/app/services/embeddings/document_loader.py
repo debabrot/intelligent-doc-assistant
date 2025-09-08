@@ -1,6 +1,5 @@
 """Loads document"""
 
-import uuid
 from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader

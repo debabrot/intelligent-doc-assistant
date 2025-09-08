@@ -85,3 +85,22 @@ class FileProcessor:
             failed=errors,
             message=f"Embedded {len(processed)} file(s)"
         )
+
+    def delete_file(self, filename: str, embedding_service: EmbeddingService) -> bool:
+        """
+        Delete a file from S3/MinIO and remove its corresponding embeddings.
+        """
+        try:
+            # 1. Delete embeddings by source (filename)
+            embedding_service.vector_store.delete_by_source(filename)
+
+            # 2. Delete file from S3/MinIO
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=filename)
+            logger.info("Deleted file '%s' from S3 bucket '%s'", filename, self.bucket_name)
+
+            return True
+
+        except Exception as e:
+            error_msg = f"Failed to delete file {filename}: {str(e)}"
+            logger.error(error_msg)
+            raise HTTPException(status_code=500, detail=error_msg)
