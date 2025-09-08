@@ -2,11 +2,16 @@
 
 import os
 import logging
+import tempfile
 from typing import List, Dict
 
+import boto3
+from botocore.exceptions import ClientError
+from botocore.client import Config
 from fastapi import HTTPException
 from pydantic import BaseModel
 
+from backend.app.core.config import settings
 from backend.app.services.embeddings.embedding_service import EmbeddingService
 
 logger = logging.getLogger(__name__)
@@ -19,34 +24,61 @@ class EmbedResponse(BaseModel):
 
 
 class FileProcessor:
-    def __init__(self, upload_dir: str):
-        self.upload_dir = upload_dir
+    def __init__(self):
+        self.s3_client = boto3.client(
+            "s3",
+            endpoint_url=settings.MINIO_ENDPOINT,
+            aws_access_key_id=settings.MINIO_ACCESS_KEY,
+            aws_secret_access_key=settings.MINIO_SECRET_KEY,
+            config=Config(signature_version="s3v4"),
+            region_name="us-east-1",
+            verify=False,
+        )
+        self.bucket_name = settings.MINIO_BUCKET
 
     def get_pdf_files(self) -> List[str]:
-        if not os.path.exists(self.upload_dir):
-            raise HTTPException(status_code=404, detail="Upload directory not found")
-        
-        pdf_files = [f for f in os.listdir(self.upload_dir) if f.endswith(".pdf")]
-        if not pdf_files:
-            raise HTTPException(status_code=400, detail="No PDF files to embed")
-        
-        return pdf_files
+        """List all PDF files in the bucket."""
+        try:
+            response = self.s3_client.list_objects_v2(Bucket=self.bucket_name)
+            if "Contents" not in response:
+                raise HTTPException(status_code=400, detail="No PDF files to embed")
+
+            pdf_files = [
+                obj["Key"] for obj in response["Contents"]
+                if obj["Key"].endswith(".pdf")
+            ]
+
+            if not pdf_files:
+                raise HTTPException(status_code=400, detail="No PDF files to embed")
+            return pdf_files
+
+        except ClientError as e:
+            logger.error("S3 error: %s", e)
+            raise HTTPException(status_code=500, detail="Error accessing S3 bucket")
 
     def process_files(self, embedding_service: EmbeddingService) -> EmbedResponse:
         pdf_files = self.get_pdf_files()
         processed = []
         errors = []
 
-        for filename in pdf_files:
-            file_path = os.path.join(self.upload_dir, filename)
-            try:
-                embedding_service.process_file(file_path)
-                processed.append(filename)
-                logger.info("Successfully processed file: %s", filename)
-            except Exception as e:
-                error_msg = f"Failed to process {filename}: {str(e)}"
-                logger.error(error_msg)
-                errors.append({filename: str(e)})
+        # Create a temporary directory to download files
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            for filename in pdf_files:
+                local_path = os.path.join(tmp_dir, filename)
+                try:
+                    # Download file from S3/MinIO
+                    self.s3_client.download_file(self.bucket_name, filename, local_path)
+                    logger.info("Downloaded %s to %s", filename, local_path)
+
+                    # Process with existing embedding service (expects local file path)
+                    embedding_service.process_file(local_path)
+                    processed.append(filename)
+                    logger.info("Successfully processed file: %s", filename)
+
+                except Exception as e:
+                    error_msg = f"Failed to process {filename}: {str(e)}"
+                    logger.error(error_msg)
+                    errors.append({filename: str(e)})
 
         return EmbedResponse(
             processed=processed,
