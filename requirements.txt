@@ -1,0 +1,21 @@
+# LangChain ecosystem
+langchain
+langchain-community
+langchain-chroma
+
+# Vector DB
+chromadb
+
+# Document loading and preprocessing
+PyPDF2
+pypdf
+
+# Endpoint
+fastapi
+pydantic
+python-multipart
+uvicorn
+
+# File storage
+minio
+boto3
