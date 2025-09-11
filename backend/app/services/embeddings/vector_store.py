@@ -98,3 +98,30 @@ class ChromaVectorStore(VectorStoreProtocol):
         except Exception as e:
             logger.error("Error deleting chunks for source %s: %s", source, e)
             raise RuntimeError(f"Failed to delete embeddings for {source}") from e
+
+    def retrieve(self, query_embedding: List[float], top_k: int = 5) -> List[DocumentChunk]:
+        """
+        Retrieve top-k most similar document chunks for a given query embedding.
+        """
+        try:
+            results = self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+                include=["documents", "metadatas", "distances"]
+            )
+
+            chunks = []
+            for i in range(len(results["ids"][0])):
+                chunk = DocumentChunk(
+                    id=results["ids"][0][i],
+                    content=results["documents"][0][i],
+                    metadata=results["metadatas"][0][i],
+                )
+                chunks.append(chunk)
+
+            logger.info("Retrieved %d chunks for query", len(chunks))
+            return chunks
+
+        except Exception as e:
+            logger.error("Error during vector search: %s", e)
+            raise RuntimeError("Failed to retrieve documents from vector store") from e

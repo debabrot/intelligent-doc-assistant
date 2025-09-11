@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field, ConfigDict
 
 class DocumentChunk(BaseModel):
     model_config = ConfigDict(extra='allow')
-
     content: str
     metadata: Dict[str, Any] = Field(default_factory=dict)
     id: str
@@ -25,6 +24,14 @@ class VectorStoreProtocol(Protocol):
     def add_documents(self,
                       chunks: List[DocumentChunk],
                       embeddings: List[List[float]]) -> None: ...
+
+    def retrieve(
+            self,
+            query_embedding: List[float],
+            top_k: int = 5
+        ) -> List[DocumentChunk]:
+        """Retrieve top-k document chunks based on query embedding."""
+        ...
 
 
 class DocumentLoaderProtocol(Protocol):

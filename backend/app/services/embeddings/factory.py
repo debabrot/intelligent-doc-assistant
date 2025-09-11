@@ -6,6 +6,7 @@ from backend.app.services.embeddings.document_loader import PDFDocumentLoader
 from backend.app.services.embeddings.embedding_provider import TEIEmbeddingProvider
 from backend.app.services.embeddings.vector_store import ChromaVectorStore
 from backend.app.services.embeddings.embedding_service import EmbeddingService
+from backend.app.services.embeddings.retriever import RetrieverService
 
 
 class EmbeddingServiceFactory:
@@ -19,9 +20,24 @@ class EmbeddingServiceFactory:
             port=settings.CHROMA_PORT,
             collection_name=settings.COLLECTION_NAME
         )
-        
+
         return EmbeddingService(
             document_loader=document_loader,
+            embedding_provider=embedding_provider,
+            vector_store=vector_store
+        )
+
+
+class RetrieverServiceFactory:
+    @staticmethod
+    def create() -> RetrieverService:
+        embedding_provider = TEIEmbeddingProvider(settings.EMBEDDING_API_URL)
+        vector_store = ChromaVectorStore(
+            host=settings.CHROMA_HOST,
+            port=settings.CHROMA_PORT,
+            collection_name=settings.COLLECTION_NAME
+        )
+        return RetrieverService(
             embedding_provider=embedding_provider,
             vector_store=vector_store
         )
