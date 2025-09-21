@@ -26,3 +26,11 @@ class RetrieveResponse(BaseModel):
     query: str
     top_k: int
     chunks: List[RetrievedChunk]
+
+
+class ChatRequest(BaseModel):
+    prompt: str
+
+
+class ChatResponse(BaseModel):
+    response: str

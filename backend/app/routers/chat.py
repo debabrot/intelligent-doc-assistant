@@ -7,10 +7,14 @@ from backend.app.dependencies import get_retriever
 from backend.app.schemas.chat_schema import (
     RetrieveRequest,
     RetrieveResponse,
-    RetrievedChunk
+    RetrievedChunk,
+    ChatRequest,
+    ChatResponse
 )
 from backend.app.services.embeddings.retriever import RetrieverService
 from backend.app.schemas.chat_schema import ChunkMetadata
+from backend.app.domain.protocols import LLMProviderProtocol
+from backend.app.dependencies import get_llm_provider
 
 
 router = APIRouter()
@@ -21,7 +25,7 @@ logger = logging.getLogger(__name__)
 async def retrieve(
     request: RetrieveRequest,
     retriever: RetrieverService = Depends(get_retriever)
-):
+    ) -> RetrieveResponse:
     try:
         top_k = max(1, min(request.top_k, 100))
         logger.info(f"Retrieving {top_k} chunks for query: {request.query[:100]}...")
@@ -56,3 +60,14 @@ async def retrieve(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve results. Please try again later."
         )
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def generate(
+        request: ChatRequest,
+        llm_provider: LLMProviderProtocol = Depends(get_llm_provider)) -> ChatResponse:
+    try:
+        response = await llm_provider.generate_response(prompt=request.prompt)
+        return ChatResponse(response=response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

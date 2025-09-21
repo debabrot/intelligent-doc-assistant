@@ -1,6 +1,6 @@
 """Contains protocols"""
 
-from typing import List, Dict, Any, Protocol
+from typing import List, Dict, Any, Protocol, AsyncGenerator
 
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -39,3 +39,9 @@ class DocumentLoaderProtocol(Protocol):
                        file_path: str,
                        chunk_size: int,
                        chunk_overlap: int) -> List[DocumentChunk]: ...
+
+
+class LLMProviderProtocol(Protocol):
+    async def generate_response(self, prompt: str) -> str: ...
+    async def stream_response(self, prompt: str) -> AsyncGenerator[str, None]: ...
+    async def close(self) -> None: ...

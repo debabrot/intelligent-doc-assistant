@@ -284,3 +284,13 @@ intelligent-doc-assistant/
 
 ## QWEN CHAT LINK
 https://chat.qwen.ai/c/be8c44c9-8ab1-4b0c-93f3-c50114cf33f3
+
+
+## Data flow for chat
+User sends chat message → chat.py router
+Router calls ChatService.chat_with_rag()
+Chat service retrieves relevant docs via existing RAG service
+Chat service formats prompt with context + history
+Chat service calls LLM via existing llm_service.py
+Response includes generated text + source attributions
+Conversation context is updated via ConversationManager

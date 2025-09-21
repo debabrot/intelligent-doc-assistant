@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str
     EMBEDDING_BASE_URL: str
 
+    # ------------------------------------------------------------------
+    # LLM
+    # ------------------------------------------------------------------
+    LLM_BASE_URL: str
+    LLM_MODEL: str
+
     @computed_field
     @property
     def EMBEDDING_API_URL(self) -> str:

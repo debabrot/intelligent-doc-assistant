@@ -76,17 +76,15 @@ services:
       - ~/.cache/huggingface:/root/.cache/huggingface
     command:
       - "--model"
-      - "TheBloke/Llama-2-7B-Chat-AWQ"
+      - "TheBloke/TinyLlama-1.1B-Chat-v1.0-AWQ"
       - "--quantization"
       - "awq"
       - "--gpu-memory-utilization"
       - "0.90"
       - "--max-model-len"
-      - "1200"  # Conservative setting for RTX 2060
+      - "1200"
       - "--host"
       - "0.0.0.0"
-      - "--dtype"
-      - "auto"
     deploy:
       resources:
         reservations:
