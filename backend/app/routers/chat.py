@@ -63,17 +63,6 @@ async def retrieve(
         )
 
 
-@router.post("/chat_with_provider", response_model=ChatResponse)
-async def generate(
-        request: ChatRequest,
-        llm_provider: LLMProviderProtocol = Depends(get_llm_provider)) -> ChatResponse:
-    try:
-        response = await llm_provider.generate_response(prompt=request.prompt)
-        return ChatResponse(response=response)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @router.post("/chat", response_model=ChatResponse)
 async def generate(
     request: ChatRequest,
