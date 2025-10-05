@@ -1,3 +1,8 @@
+https://chat.qwen.ai/c/2f1355ea-5f22-4f80-9756-452c545ba3bc
+
+
+
+
 ## 🗓️ Week-by-Week Plan
 
 ### 🔹 **Week 1: Project Setup & Ingestion MVP**

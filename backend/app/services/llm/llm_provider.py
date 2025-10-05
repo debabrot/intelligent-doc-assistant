@@ -84,25 +84,30 @@ class VLLMProvider(LLMProviderProtocol):
         """Gracefully close the HTTP client."""
         await self._client.aclose()
 
-    def _build_messages(self, prompt: str, history: Optional[List[Dict[str, str]]] = None) -> List[Dict[str, str]]:
+    def _build_messages(
+        self, 
+        prompt: str, 
+        history: Optional[List[Dict[str, str]]] = None,
+        system_prompt: Optional[str] = None
+    ) -> List[Dict[str, str]]:
         """
         Format conversation into OpenAI messages format.
-
-        Example:
-            [
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": "Hello!"},
-                {"role": "assistant", "content": "Hi there!"},
-                {"role": "user", "content": "How are you?"}
-            ]
-
-        :param prompt: The current user prompt
-        :param history: List of prior {"role": "...", "content": "..."} messages
-        :return: Formatted message list
         """
-        messages = history or []
+        messages = []
+        
+        # Add system message
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        
+        # Add history (create new list to avoid mutation)
+        if history:
+            messages.extend(list(history))
+        
+        # Add current user message
         messages.append({"role": "user", "content": prompt})
+        
         return messages
+
 
     @retry(
         stop=stop_after_attempt(3),
@@ -131,7 +136,8 @@ class VLLMProvider(LLMProviderProtocol):
 
     async def generate_response(
         self,
-        prompt: str
+        prompt: str,
+        system_prompt: Optional[str] = None
     ) -> str:
         """
         Generate a single text response from vLLM.
@@ -144,7 +150,8 @@ class VLLMProvider(LLMProviderProtocol):
         :param top_p: Nucleus sampling parameter
         :return: Generated text response
         """
-        messages = self._build_messages(prompt, self.history)
+        messages = self._build_messages(prompt, history=[], system_prompt=system_prompt)
+        logger.info(f"Messages being sent to LLM: {messages}")
 
         payload = {
             "model": self.model,

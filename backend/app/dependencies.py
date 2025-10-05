@@ -1,5 +1,7 @@
 """Contains dependencies"""
 
+from fastapi import Depends
+
 from backend.app.services.embeddings.file_processor import FileProcessor
 from backend.app.services.embeddings.embedding_service import EmbeddingService
 from backend.app.services.embeddings.factory import (
@@ -10,6 +12,7 @@ from backend.app.services.embeddings.retriever import RetrieverService
 from backend.app.services.llm.llm_provider import VLLMProvider
 from backend.app.core.config import settings
 from backend.app.domain.protocols import LLMProviderProtocol
+from backend.app.services.llm.llm_service import LLMService
 
 
 def get_file_processor() -> FileProcessor:
@@ -29,3 +32,9 @@ def get_llm_provider() -> LLMProviderProtocol:
         base_url=settings.LLM_BASE_URL,
         model=settings.LLM_MODEL
     )
+
+
+def get_llm_service(
+        llm_provider: LLMProviderProtocol = Depends(get_llm_provider)
+        ) -> LLMService:
+    return LLMService(llm_provider=llm_provider)

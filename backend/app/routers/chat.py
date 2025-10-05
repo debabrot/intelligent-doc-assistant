@@ -14,7 +14,8 @@ from backend.app.schemas.chat_schema import (
 from backend.app.services.embeddings.retriever import RetrieverService
 from backend.app.schemas.chat_schema import ChunkMetadata
 from backend.app.domain.protocols import LLMProviderProtocol
-from backend.app.dependencies import get_llm_provider
+from backend.app.dependencies import get_llm_provider, get_llm_service
+from backend.app.services.llm.llm_service import LLMService
 
 
 router = APIRouter()
@@ -62,7 +63,7 @@ async def retrieve(
         )
 
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("/chat_with_provider", response_model=ChatResponse)
 async def generate(
         request: ChatRequest,
         llm_provider: LLMProviderProtocol = Depends(get_llm_provider)) -> ChatResponse:
@@ -70,4 +71,19 @@ async def generate(
         response = await llm_provider.generate_response(prompt=request.prompt)
         return ChatResponse(response=response)
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def generate(
+    request: ChatRequest,
+    llm_service: LLMService = Depends(get_llm_service)
+) -> ChatResponse:
+    try:
+        response = await llm_service.chat_completion(
+            user_prompt=request.prompt
+        )
+        return response
+    except Exception as e:
+        logger.error(f"Chat generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
