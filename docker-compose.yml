@@ -67,34 +67,6 @@ services:
     restart: unless-stopped
     networks:
       - rag-ingestion-network
-  vllm:
-    image: vllm/vllm-openai:latest
-    runtime: nvidia
-    ports:
-      - "8002:8000"
-    volumes:
-      - ~/.cache/huggingface:/root/.cache/huggingface
-    command:
-      - "--model"
-      - "TheBloke/TinyLlama-1.1B-Chat-v1.0-AWQ"
-      - "--quantization"
-      - "awq"
-      - "--gpu-memory-utilization"
-      - "0.90"
-      - "--max-model-len"
-      - "1200"
-      - "--host"
-      - "0.0.0.0"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-    restart: unless-stopped
-    networks:
-      - rag-ingestion-network
 
 volumes:
   chroma_data:

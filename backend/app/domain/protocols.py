@@ -1,12 +1,13 @@
 """Contains protocols"""
 
-from typing import List, Dict, Any, Protocol, AsyncGenerator
+from typing import List, Dict, Any, Protocol
 
 from pydantic import BaseModel, Field, ConfigDict
 
 
 class DocumentChunk(BaseModel):
     model_config = ConfigDict(extra='allow')
+
     content: str
     metadata: Dict[str, Any] = Field(default_factory=dict)
     id: str
@@ -25,23 +26,9 @@ class VectorStoreProtocol(Protocol):
                       chunks: List[DocumentChunk],
                       embeddings: List[List[float]]) -> None: ...
 
-    def retrieve(
-            self,
-            query_embedding: List[float],
-            top_k: int = 5
-        ) -> List[DocumentChunk]:
-        """Retrieve top-k document chunks based on query embedding."""
-        ...
-
 
 class DocumentLoaderProtocol(Protocol):
     def load_and_split(self,
                        file_path: str,
                        chunk_size: int,
                        chunk_overlap: int) -> List[DocumentChunk]: ...
-
-
-class LLMProviderProtocol(Protocol):
-    async def generate_response(self, prompt: str) -> str: ...
-    async def stream_response(self, prompt: str) -> AsyncGenerator[str, None]: ...
-    async def close(self) -> None: ...
